@@ -1,4 +1,4 @@
-#include "headers.h"
+#include "DNS.h"
 
 #include <stdio.h>
 
@@ -84,19 +84,28 @@ std::string DomainName::toString() const {
     return s;
 }
 
+DNS_Base::DNS_Base(void*& p, const void* end) {
+    CAST_AND_ADVANCE(transactionID, p);
+    CAST_AND_ADVANCE(flags, p);
+    CAST_AND_ADVANCE(questions, p);
+    for (auto& RR : RRs_num) {
+        CAST_AND_ADVANCE(RR, p);
+    }
+    ntoh();
+}
 DNS_Base::DNS_Base(uint16_t transactionID, uint16_t flags, uint16_t questions,
                    uint16_t answerRRs, uint16_t authorityRRs,
                    uint16_t additionalRRs)
     : transactionID(transactionID),
       flags(flags),
       questions(questions),
-      RRs({answerRRs, authorityRRs, additionalRRs}) {}
+      RRs_num({answerRRs, authorityRRs, additionalRRs}) {}
 
-void DNS_Base::ntohs() {
+void DNS_Base::ntoh() {
     this->transactionID = ::ntohs(this->transactionID);
     this->flags = ::ntohs(this->flags);
     this->questions = ::ntohs(this->questions);
-    for (auto& RR : RRs) {
+    for (auto& RR : RRs_num) {
         RR = ::ntohs(RR);
     }
 }
@@ -242,30 +251,28 @@ DNS_Packet::DNS_Packet(void* packet, size_t packet_len)
     if (packet_len < sizeof(DNS_Base)) {
         throw "p out of range";
     }
-    this->base = (DNS_Base*)packet;
-    this->base->ntohs();
     void* end = (void*)((char*)packet + packet_len);
-    void* p = (void*)((char*)packet + sizeof(DNS_Base));
-    for (int i = 0; i < base->questions; i++) {
-        p_out_of_range(p, end);
-        queries.addQuery(std::make_unique<DNS_Query>(p, end));
+    base = std::move(DNS_Base(packet, end));
+    for (int i = 0; i < base.questions; i++) {
+        p_out_of_range(packet, end);
+        queries.addQuery(std::make_unique<DNS_Query>(packet, end));
     }
     for (auto& RRs : RRs_3) {
-        for (int i = 0; i < base->RRs[RRs.type]; i++) {
-            p_out_of_range(p, end);
-            RRs.addRR(std::make_unique<DNS_Resource_Record>(p, end));
+        for (int i = 0; i < base.RRs_num[RRs.type]; i++) {
+            p_out_of_range(packet, end);
+            RRs.addRR(std::make_unique<DNS_Resource_Record>(packet, end));
         }
     }
 }
 
 void DNS_Packet::display() const {
     printf("DNS Packet\n");
-    printf("   |-Transaction ID    : %d\n", base->transactionID);
-    printf("   |-Flags             : %d\n", base->flags);
-    printf("   |-Questions         : %d\n", base->questions);
-    printf("   |-Answer RRs        : %d\n", base->RRs[0]);
-    printf("   |-Authority RRs     : %d\n", base->RRs[1]);
-    printf("   |-Additional RRs    : %d\n", base->RRs[2]);
+    printf("   |-Transaction ID    : %d\n", base.transactionID);
+    printf("   |-Flags             : %d\n", base.flags);
+    printf("   |-Questions         : %d\n", base.questions);
+    printf("   |-Answer RRs        : %d\n", base.RRs_num[0]);
+    printf("   |-Authority RRs     : %d\n", base.RRs_num[1]);
+    printf("   |-Additional RRs    : %d\n", base.RRs_num[2]);
     printf("\n");
     queries.display();
     for (const auto& RRs : RRs_3) {

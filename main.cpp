@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-#include "headers.h"
+#include "DNS.h"
 
 void packetHandler(unsigned char* arg, const struct pcap_pkthdr* pkthdr,
                    const unsigned char* packet);

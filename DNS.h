@@ -27,15 +27,17 @@ struct DomainName {
 
 struct DNS_Base {
    public:
+    DNS_Base() = default;
+    DNS_Base(void*&, const void*);
     DNS_Base(uint16_t transactionID, uint16_t flags, uint16_t questions,
              uint16_t answerRRs, uint16_t authorityRRs, uint16_t additionalRRs);
     ~DNS_Base() = default;
-    void ntohs();
+    void ntoh();
 
     uint16_t transactionID;
     uint16_t flags;
     uint16_t questions;
-    std::array<uint16_t, 3> RRs;
+    std::array<uint16_t, 3> RRs_num;
     // uint16_t answerRRs;
     // uint16_t authorityRRs;
     // uint16_t additionalRRs;
@@ -128,7 +130,7 @@ struct DNS_Packet {
     void display() const;
     void parseDomainName(void*, const void*);
 
-    DNS_Base* base;
+    DNS_Base base;
     DNS_Queries queries;
     std::array<DNS_RRs, 3> RRs_3;
 };
