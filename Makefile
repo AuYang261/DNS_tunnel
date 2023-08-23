@@ -1,14 +1,15 @@
 DEBUG := -g
-SRC = main.cpp
+SRC = $(wildcard ./*.cpp)
 TARGET = main
 BIN = bin/
+INC = ./
 
 
-build:
-	g++ ${SRC} -lpcap -o ${BIN}${TARGET}
+build: ${SRC}
+	g++ ${SRC} -lpcap -o ${BIN}${TARGET} -I ${INC}
 
-build-debug:
-	g++ ${SRC} -lpcap -o ${BIN}${TARGET} $(DEBUG)
+build-debug: ${SRC}
+	g++ ${SRC} -lpcap -o ${BIN}${TARGET} -I ${INC} $(DEBUG)
 
 all: run
 
@@ -17,3 +18,7 @@ run: build
 
 debug: build-debug
 	gdbserver :1234 ./${BIN}${TARGET}
+
+clean:
+	rm -rf ${BIN}${TARGET}
+	
