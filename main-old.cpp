@@ -70,7 +70,11 @@ void packetHandler(unsigned char* arg, const struct pcap_pkthdr* pkthdr,
     print_udp_header(udp_header);
 
     // DNS
+#ifdef __APPLE__
+    if (ntohs(udp_header->uh_dport) != 53 && ntohs(udp_header->uh_sport) != 53) {
+#else
     if (ntohs(udp_header->dest) != 53 && ntohs(udp_header->source) != 53) {
+#endif
         printf("not dns packet\n");
         return;
     }
