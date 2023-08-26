@@ -8,7 +8,7 @@ CaptureFile::CaptureFile(Config config) : Capture(config) {
 	if (reader == nullptr || !reader->open()) {
 		throw std::runtime_error("Failed to open capture file");
 	}
-	if (!reader->setFilter("dns")) {
+	if (!reader->setFilter("udp port 53")) {	// set filter for dns
 		printf("Warning: failed to set filter\n");
 	}
 }

@@ -1,7 +1,7 @@
 #include "packets.h"
 
 DNSFeatures parseDNSPacket(pcpp::RawPacket* packet) {
-	DNSFeatures features;
+	DNSFeatures features{};
 	pcpp::Packet parsed_packet(packet);
 	pcpp::DnsLayer* dns_layer = parsed_packet.getLayerOfType<pcpp::DnsLayer>();
 	features.timestamp = packet->getPacketTimeStamp();

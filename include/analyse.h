@@ -11,6 +11,7 @@ public:
 	void analysePacket(pcpp::RawPacket* packet);
 private:
 	// TODO: statistics maintained by the analyzer
+	timespec start_timestamp{};
 };
 
 #endif

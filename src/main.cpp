@@ -6,7 +6,7 @@
 int main() {
 	// first test capture file
 	Config config;
-	config.source_name = "test.pcap";
+	config.source_name = "../test.pcap";
 	CaptureFile capture(config);
 	capture.run();
 	return 0;
