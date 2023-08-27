@@ -13,18 +13,22 @@ DNSFeatures parseDNSPacket(pcpp::RawPacket* packet) {
 		features.type = DNS_TYPE::DNS_TYPE_RESPONSE;
 		pcpp::DnsResource* dns_resource = dns_layer->getFirstAnswer();
 		while (dns_resource != nullptr) {
-			if (dns_resource->getDnsType() == pcpp::DNS_TYPE_A) {
+			if (dns_resource->getDnsType() == pcpp::DNS_TYPE_A || dns_resource->getDnsType() == pcpp::DNS_TYPE_AAAA) {
 				features.num_answers++;
 			} else if (dns_resource->getDnsType() == pcpp::DNS_TYPE_NS) {
 				features.num_authority++;
 			}
-			// TODO: need domain?
+			features.domains.push_back(dns_resource->getName());
 			dns_resource = dns_layer->getNextAnswer(dns_resource);
 		}
 	}
 	else {
 		features.type = DNS_TYPE::DNS_TYPE_QUERY;
-		// TODO: add features
+		// add request domain to the features
+		pcpp::DnsQuery* dns_query = dns_layer->getFirstQuery();
+		if (dns_query != nullptr) {
+			features.domains.push_back(dns_query->getName());
+		}
 	}
 
 	return features;
