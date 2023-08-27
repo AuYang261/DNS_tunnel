@@ -1,0 +1,30 @@
+cmake_minimum_required(VERSION 3.15)
+
+project(DNS_TUNNEL LANGUAGES "CXX")
+set(CMAKE_CXX_STANDARD 20)
+
+if (CMAKE_HOST_APPLE)
+	set(MACOS 1)
+	message("MacOS Host detected")
+elseif(CMAKE_HOST_UNIX)
+	set(LINUX 1)
+	message("Linux Host detected")
+endif ()
+
+aux_source_directory(src DIR_SRCS)
+file (GLOB SOURCES CONFIGURE_DEPENDS "src/*.cpp" "include/*.h")
+add_executable(dns_tunnel_detection ${SOURCES})
+target_include_directories(dns_tunnel_detection PRIVATE ${PROJECT_SOURCE_DIR}/include)
+
+
+message("Hello world")
+if(MACOS)
+	target_link_directories(dns_tunnel_detection PUBLIC "/usr/local/opt/pcapplusplus/lib")
+	target_include_directories(dns_tunnel_detection PRIVATE "/usr/local/opt/pcapplusplus/include/pcapplusplus")
+elseif(LINUX)
+	target_link_directories(dns_tunnel_detection PUBLIC "/usr/local/lib")
+	target_include_directories(dns_tunnel_detection PRIVATE "/usr/local/include/pcapplusplus")
+endif ()
+
+target_link_libraries(dns_tunnel_detection PUBLIC "Packet++" "Pcap++" "Common++" "pcap" "pthread")
+target_compile_options(dns_tunnel_detection PUBLIC -DPCAPP_CPP_FEATURE_DETECTION)
