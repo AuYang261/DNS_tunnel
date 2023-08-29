@@ -2,7 +2,58 @@
 
 MCWD
 
-## 各文件文档
+## 特征
+
+### 特征选取
+
+#### 单个报文特征
+
+* 子域名长度
+
+* 大写字母数
+
+* 子域名信息熵
+
+  ```python
+  def shannon(word):
+      entropy = 0.0
+      length = len(word)
+      occ = {}
+      for c in word:
+          if not c in occ:
+              occ[ c ] = 0
+          occ += 1
+  
+      for (k,v) in occ.iteritems():
+          p = float( v ) / float(length)
+          entropy -= p * math.log(p, 2)	# Log base 2
+      return entropy
+  ```
+
+* 二级域名后最长元音距：[基于日志统计特征的DNS隧道检测](https://www.zjujournals.com/eng/article/2020/1008-973X/202009011.shtml)
+
+
+
+#### 行为特征
+
+* 一定时间内、对同一二级域名请求数
+* 响应时间（正常DNS请求通常会缓存命中，响应时间较短）
+* 有效载荷的上传下载比
+
+### 分析方法
+
+* 孤立森林算法，离群度较大的报文可疑：python实现（√）
+* 手动设定各特征的阈值，加权和越大越可疑：c++实现（×）
+
+
+
+### 实现
+
+* PacketAnalyzer根据解析的DNS报文计算各种单个报文特征
+* 对于行为特征，记录每个请求的transactionID和报文对并保存，得到响应报文时根据transactionID查找之前保存的请求报文，得到请求-响应对，计算响应时间和有效载荷的上传下载比；同时用滑动窗口维护每个二级域名的最近请求数。
+* 得到的特征，用孤立森林算法计算离群度
+
+## 各文件文档（已废弃）
 
 ### main.cpp
 
