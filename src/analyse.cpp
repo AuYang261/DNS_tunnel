@@ -179,9 +179,9 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
         std::cout << "transactionID: " << dns_packet.transactionID
                   << " already exists" << std::endl;
         // print all the transactionIDs in dns_features_map
-        for (auto&& [transactionID, dns_features] : dns_features_map) {
-            std::cout << transactionID << std::endl;
-        }
+        // for (auto&& [transactionID, dns_features] : dns_features_map) {
+        //     std::cout << transactionID << std::endl;
+        // }
     }
 }
 
