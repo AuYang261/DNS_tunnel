@@ -3,25 +3,36 @@
 
 #include <Python.h>
 
+#include <map>
+#include <queue>
+#include <tuple>
+
 #include "packets.h"
 
 struct DNSFeatures {
-    int subdomain_len;
+    int subdomain_len = 0;
     // 子域名大写字母数
-    int capital_count;
+    int capital_count = 0;
     // 子域名信息熵
-    int entropy;
+    int entropy = 0;
     // 子域名的最长元音距
-    int longest_vowel_distance;
+    int longest_vowel_distance = 0;
     // 窗口内请求数
-    int request_num_in_window;
+    int request_num_in_window = 0;
     // 响应时间
-    int response_time;
+    timespec response_time;
     // 有效载荷的上传/下载比
-    double payload_up_down_ratio;
+    double payload_up_down_ratio = 0;
 };
 
+// transactionID -> (DNSFeatures, timestamp)
 typedef std::map<uint16_t, DNSFeatures> DNSFeaturesMap;
+// slide window
+typedef std::queue<DNSPacket> DNSPacketWindow;
+// number of each subdomain in slide window
+typedef std::map<std::string, int> SecondaryDomainCountMap;
+
+time_t operator-(timespec& lhs, timespec& rhs);
 
 class PacketAnalyzer {
    public:
@@ -39,22 +50,26 @@ class PacketAnalyzer {
 
    private:
     PacketAnalyzer();
-    inline static PacketAnalyzer* instance;
-    // TODO: statistics maintained by the analyzer
-    timespec start_timestamp{};
+    void analyseQuery(DNSPacket& dns_packet);
+    void analyseResponse(DNSPacket& dns_packet);
+    static std::string getSecondaryDomain(const std::string& domain);
+    static std::string getSubdomain(const std::string& domain);
+
     PyObject* py_script;
     PyObject* func_load_model;
     PyObject* func_predict;
     PyObject* model;
     DNSFeaturesMap dns_features_map;
+    DNSPacketWindow dns_packet_window;
+    SecondaryDomainCountMap secondary_domain_count_map;
 
     static inline const std::string model_path = "../models/";
     static inline const std::string model_name = "model";
     static inline const std::string py_script_path = "../py/";
     static inline const std::string py_script_name = "iforest";
+    static inline const time_t window_time_seconds = 10;
 
-    void analyseQuery(DNSPacket& dns_packet);
-    void analyseResponse(DNSPacket& dns_packet);
+    inline static PacketAnalyzer* instance;
 };
 
 #endif

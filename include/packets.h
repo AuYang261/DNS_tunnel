@@ -4,19 +4,18 @@
 #include <DnsLayer.h>
 #include <Packet.h>
 
-#include <map>
-
 enum DNS_TYPE { DNS_TYPE_NONE, DNS_TYPE_QUERY, DNS_TYPE_RESPONSE };
 
 struct DNSPacket {
     uint16_t transactionID;
     timespec timestamp;
     DNS_TYPE type;
-    std::vector<std::string> domains;
+    std::string domain;
     int num_answers;
     int num_authority;
+    int size;
 };
 
-DNSPacket&& parseDNSPacket(pcpp::RawPacket* packet);
+DNSPacket parseDNSPacket(pcpp::RawPacket* packet);
 
 #endif
