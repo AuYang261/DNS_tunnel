@@ -35,13 +35,23 @@ void PacketAnalyzer::init() {
     if (!PyCallable_Check(func_load_model)) {
         throw std::runtime_error("load_model is not callable");
     }
+    // get function save_model
+    func_save_model = PyObject_GetAttrString(py_script, "save_model");
+    check_null(func_save_model);
+    if (!PyCallable_Check(func_save_model)) {
+        throw std::runtime_error("save_model is not callable");
+    }
     // get function predict
-    func_predict = PyObject_GetAttrString(py_script, "predict");
-    check_null(func_predict);
-    if (!PyCallable_Check(func_predict)) {
+    func_fit_predict = PyObject_GetAttrString(py_script, "fit_predict");
+    check_null(func_fit_predict);
+    if (!PyCallable_Check(func_fit_predict)) {
         throw std::runtime_error("predict is not callable");
     }
 
+    loadModel();
+}
+
+void PacketAnalyzer::loadModel() {
     // pass a string to function load_model
     PyObject* load_model_args =
         Py_BuildValue("(s)", (model_path + model_name).c_str());
@@ -51,15 +61,26 @@ void PacketAnalyzer::init() {
     check_null(model);
 }
 
-bool PacketAnalyzer::predict(const DNSFeatures& dns_features) {
+void PacketAnalyzer::saveModel() {
+    // pass model and a string to function save_model
+    PyObject* save_model_args =
+        Py_BuildValue("(Oss)", model, model_path.c_str(), model_name.c_str());
+    // call function save_model
+    PyObject_CallObject(func_save_model, save_model_args);
+    PyErr_Print();
+}
+
+bool PacketAnalyzer::fit_predict(const DNSFeatures& dns_features) {
     // TODO
     // get function predict's parameter
     PyObject* predict_args = Py_BuildValue("(O,[i,i])", model, 2, 2);
     // call function predict
-    PyObject* predict_result = PyObject_CallObject(func_predict, predict_args);
-    check_null(predict_result);
-    // check if predict_result is true
-    return PyObject_IsTrue(predict_result);
+    PyObject* fit_predict_result =
+        PyObject_CallObject(func_fit_predict, predict_args);
+    check_null(fit_predict_result);
+    saveModel();
+    // check if fit_predict_result is true
+    return PyObject_IsTrue(fit_predict_result);
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -77,6 +98,7 @@ void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
 }
 
 void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
+    std::cout << "analyseQuery " << dns_packet.transactionID << std::endl;
     dns_packet_window.push(dns_packet);
     while (!dns_packet_window.empty() &&
            toSecond(dns_packet_window.front().timestamp) <
@@ -142,10 +164,15 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     } else {
         std::cout << "transactionID: " << dns_packet.transactionID
                   << " already exists" << std::endl;
+        // print all the transactionIDs in dns_features_map
+        for (auto&& [transactionID, dns_features] : dns_features_map) {
+            std::cout << transactionID << std::endl;
+        }
     }
 }
 
 void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
+    std::cout << "analyseResponse " << dns_packet.transactionID << std::endl;
     // analyse response to DNSFeatures
     auto dns_feature_i = dns_features_map.find(dns_packet.transactionID);
     if (dns_feature_i == dns_features_map.end()) {
@@ -162,14 +189,10 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
         dns_packet.size / dns_features.payload_up_down_ratio;
     // dns_features.print();
     // predict
-    bool is_malicious = predict(dns_features);
-    if (is_malicious) {
-        std::cout << "transactionID: " << dns_packet.transactionID
-                  << " is malicious" << std::endl;
-    } else {
-        std::cout << "transactionID: " << dns_packet.transactionID
-                  << " is not malicious" << std::endl;
-    }
+    bool normal = fit_predict(dns_features);
+    std::cout << "transactionID: " << dns_packet.transactionID
+              << (normal ? " is not malicious" : "is malicious") << std::endl;
+
     // erase dns_features
     dns_features_map.erase(dns_feature_i);
 }

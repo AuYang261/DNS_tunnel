@@ -11,8 +11,6 @@ struct DNSPacket {
     timespec timestamp;
     DNS_TYPE type;
     std::string domain;
-    int num_answers;
-    int num_authority;
     int size;
 };
 

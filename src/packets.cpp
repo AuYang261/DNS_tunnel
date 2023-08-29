@@ -14,16 +14,16 @@ DNSPacket parseDNSPacket(pcpp::RawPacket* packet) {
     // in, used to calculate payload_up_down_ratio
     if (dns_layer->getAnswerCount() > 0) {
         dns_packet.type = DNS_TYPE::DNS_TYPE_RESPONSE;
-        pcpp::DnsResource* dns_resource = dns_layer->getFirstAnswer();
-        while (dns_resource != nullptr) {
-            if (dns_resource->getDnsType() == pcpp::DNS_TYPE_A ||
-                dns_resource->getDnsType() == pcpp::DNS_TYPE_AAAA) {
-                dns_packet.num_answers++;
-            } else if (dns_resource->getDnsType() == pcpp::DNS_TYPE_NS) {
-                dns_packet.num_authority++;
-            }
-            dns_resource = dns_layer->getNextAnswer(dns_resource);
-        }
+        // pcpp::DnsResource* dns_resource = dns_layer->getFirstAnswer();
+        // while (dns_resource != nullptr) {
+        //     if (dns_resource->getDnsType() == pcpp::DNS_TYPE_A ||
+        //         dns_resource->getDnsType() == pcpp::DNS_TYPE_AAAA) {
+        //         dns_packet.num_answers++;
+        //     } else if (dns_resource->getDnsType() == pcpp::DNS_TYPE_NS) {
+        //         dns_packet.num_authority++;
+        //     }
+        //     dns_resource = dns_layer->getNextAnswer(dns_resource);
+        // }
     } else {
         dns_packet.type = DNS_TYPE::DNS_TYPE_QUERY;
         // add request domain to the dns_packet
