@@ -6,14 +6,12 @@ import os
 
 def load_model(name: str) -> IsolationForest:
     if not name:
-        print("Warning: name is empty")
-        return IsolationForest()
+        raise FileNotFoundError(f"name is empty")
     print(f"loading model {name} ...")
     if not os.path.exists(name):
-        print(
-            f"Warning: model {name} not found, returned a new model. cwd: ", os.getcwd()
+        raise FileNotFoundError(
+            f"model {name} not found, returned a new model. cwd: {os.getcwd()}"
         )
-        return IsolationForest()
     model: IsolationForest = pickle.load(open(name, "rb"))
     print("model loaded")
     return model
@@ -21,8 +19,7 @@ def load_model(name: str) -> IsolationForest:
 
 def save_model(model: IsolationForest, path: str, name: str):
     if not name or not path:
-        print("Warning: path or name is empty")
-        return
+        raise FileNotFoundError("Warning: path or name is empty")
     if not os.path.exists(path):
         os.makedirs(path)
     print(f"saving model {name} ...")
