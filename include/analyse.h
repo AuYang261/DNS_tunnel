@@ -15,7 +15,7 @@ struct DNSFeatures {
     // 子域名大写字母数
     int capital_count = 0;
     // 子域名信息熵
-    int entropy = 0;
+    double entropy = 0;
     // 子域名的最长元音距
     int longest_vowel_distance = 0;
     // 窗口内请求数
