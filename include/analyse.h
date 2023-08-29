@@ -51,7 +51,7 @@ class PacketAnalyzer {
     PacketAnalyzer();
     void loadModel();
     void saveModel();
-    bool fit_predict(const DNSFeatures&);
+    bool predict(const DNSFeatures&);
     void analyseQuery(DNSPacket& dns_packet);
     void analyseResponse(DNSPacket& dns_packet);
     static std::string getSecondaryDomain(const std::string& domain);
@@ -61,7 +61,7 @@ class PacketAnalyzer {
     PyObject* py_script;
     PyObject* func_load_model;
     PyObject* func_save_model;
-    PyObject* func_fit_predict;
+    PyObject* func_predict;
     PyObject* model;
     DNSFeaturesMap dns_features_map;
     DNSPacketWindow dns_packet_window;

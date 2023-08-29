@@ -22,7 +22,7 @@ void PacketAnalyzer::init() {
     // add path
     PyRun_SimpleString(("sys.path.append(\"" + py_script_path + "\")").c_str());
     PyErr_Print();
-    // print current path
+    // import py_script
     py_script = PyImport_ImportModule(py_script_name.c_str());
     check_null(py_script);
 
@@ -39,9 +39,9 @@ void PacketAnalyzer::init() {
         throw std::runtime_error("save_model is not callable");
     }
     // get function predict
-    func_fit_predict = PyObject_GetAttrString(py_script, "fit_predict");
-    check_null(func_fit_predict);
-    if (!PyCallable_Check(func_fit_predict)) {
+    func_predict = PyObject_GetAttrString(py_script, "predict");
+    check_null(func_predict);
+    if (!PyCallable_Check(func_predict)) {
         throw std::runtime_error("predict is not callable");
     }
 
@@ -67,17 +67,17 @@ void PacketAnalyzer::saveModel() {
     PyErr_Print();
 }
 
-bool PacketAnalyzer::fit_predict(const DNSFeatures& dns_features) {
+bool PacketAnalyzer::predict(const DNSFeatures& dns_features) {
     // TODO
     // get function predict's parameter
     PyObject* predict_args = Py_BuildValue("(O,[i,i])", model, 2, 2);
     // call function predict
-    PyObject* fit_predict_result =
-        PyObject_CallObject(func_fit_predict, predict_args);
-    check_null(fit_predict_result);
-    saveModel();
-    // check if fit_predict_result is true
-    return PyObject_IsTrue(fit_predict_result);
+    PyObject* predict_result = PyObject_CallObject(func_predict, predict_args);
+    check_null(predict_result);
+    // predict, needn't to save model
+    // saveModel();
+    // check if predict_result is true
+    return PyObject_IsTrue(predict_result);
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -186,7 +186,7 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
         dns_packet.size / dns_features.payload_up_down_ratio;
     // dns_features.print();
     // predict
-    bool normal = fit_predict(dns_features);
+    bool normal = predict(dns_features);
     std::cout << "transactionID: " << dns_packet.transactionID
               << (normal ? " is not malicious" : "is malicious") << std::endl;
 

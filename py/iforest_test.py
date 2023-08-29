@@ -13,16 +13,17 @@ X_train = np.r_[X + 2, X - 2]
 X = 0.3 * rng.randn(1000, 2)
 X_test = np.r_[X + 2, X - 2]
 # 产生没有规律的观察样本
-X_outliers = rng.uniform(low=-4, high=4, size=(20, 2))
+X_outliers = rng.uniform(low=-4, high=4, size=(200, 2))
 
 X_test_all = np.concatenate((X_test, X_outliers), axis=0)
 # 训练模型
 clf = IsolationForest(max_samples=n_sample, random_state=rng)
-clf.fit(X_train)
+y_pred_train = clf.fit_predict(X_train)
+# y_pred_train = clf.fit_predict(np.r_[X_train, X_outliers])
 # 保存模型
 with open("models/model", "wb") as f:
     pickle.dump(clf, f)
-y_pred_train = clf.predict(X_train)  # 返回正常或者异常的标志，1是正常，-1是异常
+# print((y_pred_train == clf.predict(X_train)).all())  # 返回正常或者异常的标志，1是正常，-1是异常
 y_pred_test = clf.predict(X_test)
 y_pred_outliers = clf.predict(X_outliers)
 
