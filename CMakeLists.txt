@@ -19,7 +19,6 @@ find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 target_include_directories(${PROJECT_NAME} PRIVATE ${Python3_INCLUDE_DIRS})
 message(${Python3_INCLUDE_DIRS})
 
-message("Hello world")
 if(MACOS)
 	target_link_directories(${PROJECT_NAME} PUBLIC "/usr/local/opt/pcapplusplus/lib")
 	target_include_directories(${PROJECT_NAME} PRIVATE "/usr/local/opt/pcapplusplus/include/pcapplusplus")

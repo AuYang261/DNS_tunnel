@@ -10,9 +10,8 @@ DNSPacket parseDNSPacket(pcpp::RawPacket* packet) {
         dns_packet.type = DNS_TYPE::DNS_TYPE_NONE;
         return dns_packet;
     }
-    // TODO: add size to dns_packet, which means the size of the up/down data
-    // in, used to calculate payload_up_down_ratio
-    if (dns_layer->getAnswerCount() > 0) {
+    dns_packet.size = dns_layer->getDataLen() - 12;     // header size = 12
+    if (dns_layer->getAnswerCount() > 0) {  // response
         dns_packet.type = DNS_TYPE::DNS_TYPE_RESPONSE;
         // pcpp::DnsResource* dns_resource = dns_layer->getFirstAnswer();
         // while (dns_resource != nullptr) {
@@ -24,7 +23,7 @@ DNSPacket parseDNSPacket(pcpp::RawPacket* packet) {
         //     }
         //     dns_resource = dns_layer->getNextAnswer(dns_resource);
         // }
-    } else {
+    } else {        // query
         dns_packet.type = DNS_TYPE::DNS_TYPE_QUERY;
         // add request domain to the dns_packet
         pcpp::DnsQuery* dns_query = dns_layer->getFirstQuery();

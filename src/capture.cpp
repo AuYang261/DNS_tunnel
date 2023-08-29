@@ -5,7 +5,6 @@
 #include "common.h"
 
 CaptureFile::CaptureFile(Config config) : Capture(config) {
-    // TODO: initialize analyzer
     PacketAnalyzer::getInstance().init();
     reader = pcpp::IFileReaderDevice::getReader(config.source_name);
     if (reader == nullptr || !reader->open()) {

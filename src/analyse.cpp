@@ -23,9 +23,6 @@ void PacketAnalyzer::init() {
     PyRun_SimpleString(("sys.path.append(\"" + py_script_path + "\")").c_str());
     PyErr_Print();
     // print current path
-    // PyRun_SimpleString("import os");
-    // PyRun_SimpleString("print(os.getcwd())");
-    // import module
     py_script = PyImport_ImportModule(py_script_name.c_str());
     check_null(py_script);
 
