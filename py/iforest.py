@@ -13,6 +13,7 @@ def load_model(name: str) -> IsolationForest:
         print("Warning: model not found. cwd: ", os.getcwd())
         return IsolationForest()
     model: IsolationForest = pickle.load(open(name, "rb"))
+    print("model loaded")
     return model
 
 

@@ -19,8 +19,8 @@ struct DNSFeatures {
     int longest_vowel_distance = 0;
     // 窗口内请求数
     int request_num_in_window = 0;
-    // 响应时间
-    timespec response_time;
+    // 响应时间，秒
+    double response_time;
     // 有效载荷的上传/下载比
     double payload_up_down_ratio = 0;
 };
@@ -32,7 +32,7 @@ typedef std::queue<DNSPacket> DNSPacketWindow;
 // number of each subdomain in slide window
 typedef std::map<std::string, int> SecondaryDomainCountMap;
 
-time_t operator-(timespec& lhs, timespec& rhs);
+double operator-(const timespec& lhs, double rhs);
 
 class PacketAnalyzer {
    public:
@@ -54,6 +54,7 @@ class PacketAnalyzer {
     void analyseResponse(DNSPacket& dns_packet);
     static std::string getSecondaryDomain(const std::string& domain);
     static std::string getSubdomain(const std::string& domain);
+    static double toSecond(const timespec& ts);
 
     PyObject* py_script;
     PyObject* func_load_model;
@@ -67,7 +68,7 @@ class PacketAnalyzer {
     static inline const std::string model_name = "model";
     static inline const std::string py_script_path = "../py/";
     static inline const std::string py_script_name = "iforest";
-    static inline const time_t window_time_seconds = 10;
+    static inline const double window_time_second = 10.0;
 
     inline static PacketAnalyzer* instance;
 };

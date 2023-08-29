@@ -2,16 +2,15 @@
 
 #include <iostream>  // for test
 
-time_t operator-(timespec& lhs, timespec& rhs) {
-    // seconds
-    return (lhs.tv_sec - rhs.tv_sec) - (lhs.tv_nsec < rhs.tv_nsec);
-}
-
 #define check_null(val)                                           \
     if (val == nullptr) {                                         \
         PyErr_Print();                                            \
         throw std::runtime_error(#val + std::string(" is null")); \
     }
+
+double operator-(const timespec& lhs, double rhs) {
+    return lhs.tv_sec + lhs.tv_nsec / 1000000000.0 - rhs;
+}
 
 PacketAnalyzer::PacketAnalyzer() {
     // TODO
@@ -80,8 +79,8 @@ void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
 void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     dns_packet_window.push(dns_packet);
     while (!dns_packet_window.empty() &&
-           dns_packet_window.front().timestamp - dns_packet.timestamp >
-               window_time_seconds) {
+           toSecond(dns_packet_window.front().timestamp) <
+               dns_packet.timestamp - window_time_second) {
         // pop and update secondary_domain_count_map
         auto subdomain_count_i = secondary_domain_count_map.find(
             getSecondaryDomain(dns_packet_window.front().domain));
@@ -102,7 +101,6 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
         secondary_domain_count_i->second++;
     }
 
-    // TODO
     // analyse query to DNSFeatures
     DNSFeatures dns_features{};
     std::string subdomain = getSubdomain(dns_packet.domain);
@@ -134,24 +132,46 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     }
     // request_num_in_window
     dns_features.request_num_in_window = secondary_domain_count_i->second;
-    // response_time, record as the request time temporarily
-    dns_features.response_time = dns_packet.timestamp;
-    // payload_up_down_ratio, record as query size temporarily
+    // response_time, recorded as the request time temporarily
+    dns_features.response_time = toSecond(dns_packet.timestamp);
+    // payload_up_down_ratio, recorded as query size temporarily
     dns_features.payload_up_down_ratio = dns_packet.size;
 
     if (dns_features_map.count(dns_packet.transactionID) == 0) {
         dns_features_map[dns_packet.transactionID] = dns_features;
+    } else {
+        std::cout << "transactionID: " << dns_packet.transactionID
+                  << " already exists" << std::endl;
     }
 }
 
 void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
-    // TODO
     // analyse response to DNSFeatures
-    DNSFeatures dns_features{};
     auto dns_feature_i = dns_features_map.find(dns_packet.transactionID);
     if (dns_feature_i == dns_features_map.end()) {
-    } else {
+        std::cout << "transactionID: " << dns_packet.transactionID
+                  << " not found" << std::endl;
+        return;
     }
+    DNSFeatures& dns_features = dns_feature_i->second;
+    // response_time
+    dns_features.response_time =
+        dns_packet.timestamp - dns_features.response_time;
+    // payload_up_down_ratio
+    dns_features.payload_up_down_ratio =
+        dns_packet.size / dns_features.payload_up_down_ratio;
+    // dns_features.print();
+    // predict
+    bool is_malicious = predict(dns_features);
+    if (is_malicious) {
+        std::cout << "transactionID: " << dns_packet.transactionID
+                  << " is malicious" << std::endl;
+    } else {
+        std::cout << "transactionID: " << dns_packet.transactionID
+                  << " is not malicious" << std::endl;
+    }
+    // erase dns_features
+    dns_features_map.erase(dns_feature_i);
 }
 
 std::string PacketAnalyzer::getSecondaryDomain(const std::string& domain) {
@@ -168,4 +188,8 @@ std::string PacketAnalyzer::getSubdomain(const std::string& domain) {
         return domain;
     }
     return domain.substr(0, pos);
+}
+
+double PacketAnalyzer::toSecond(const timespec& ts) {
+    return ts.tv_sec + ts.tv_nsec / 1000000000.0;
 }
