@@ -5,7 +5,7 @@
 #include "common.h"
 
 CaptureFile::CaptureFile(Config config) : Capture(config) {
-    PacketAnalyzer::getInstance().init();
+    PacketAnalyzer::getInstance().init(config);
     reader = pcpp::IFileReaderDevice::getReader(config.source_name);
     if (reader == nullptr || !reader->open()) {
         throw std::runtime_error("Failed to open capture file");

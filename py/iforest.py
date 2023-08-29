@@ -23,7 +23,7 @@ def save_model(model: IsolationForest, path: str, name: str):
     if not os.path.exists(path):
         os.makedirs(path)
     print(f"saving model {name} ...")
-    pickle.dump(model, open(name, "wb"))
+    pickle.dump(model, open(os.path.join(path, name), "wb"))
     print("model saved")
 
 
@@ -41,7 +41,10 @@ def predict(model: IsolationForest, data: list) -> bool:
 
 
 def train():
-    # TODO
+    features = np.loadtxt("models/dns_features.csv", delimiter=",")
+    clf = IsolationForest(max_samples=features.shape[0])
+    print(clf.fit_predict(features))
+    save_model(clf, "models", "model")
     pass
 
 

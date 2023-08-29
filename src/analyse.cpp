@@ -1,5 +1,6 @@
 #include "analyse.h"
 
+#include <fstream>
 #include <iostream>  // for test
 
 #define check_null(val)                                           \
@@ -16,7 +17,8 @@ PacketAnalyzer::PacketAnalyzer() {
     // TODO
 }
 
-void PacketAnalyzer::init() {
+void PacketAnalyzer::init(const Config& config) {
+    if_dump = config.train_mode;
     Py_Initialize();
     PyRun_SimpleString("import sys");
     // add path
@@ -45,7 +47,9 @@ void PacketAnalyzer::init() {
         throw std::runtime_error("predict is not callable");
     }
 
-    loadModel();
+    if (!if_dump) {
+        loadModel();
+    }
 }
 
 void PacketAnalyzer::loadModel() {
@@ -78,6 +82,19 @@ bool PacketAnalyzer::predict(const DNSFeatures& dns_features) {
     // saveModel();
     // check if predict_result is true
     return PyObject_IsTrue(predict_result);
+}
+
+void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
+    // save dns_features to file
+    std::fstream file(model_path + features_file_name,
+                      std::ios::out | std::ios::app);
+    file << dns_features.subdomain_len << "," << dns_features.capital_count
+         << "," << dns_features.entropy << ","
+         << dns_features.longest_vowel_distance << ","
+         << dns_features.request_num_in_window << ","
+         << dns_features.response_time << ","
+         << dns_features.payload_up_down_ratio << std::endl;
+    file.close();
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -184,14 +201,20 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
     // payload_up_down_ratio
     dns_features.payload_up_down_ratio =
         dns_packet.size / dns_features.payload_up_down_ratio;
-    // dns_features.print();
-    // predict
-    bool normal = predict(dns_features);
-    std::cout << "transactionID: " << dns_packet.transactionID
-              << (normal ? " is not malicious" : "is malicious") << std::endl;
 
-    // erase dns_features
-    dns_features_map.erase(dns_feature_i);
+    if (if_dump) {
+        // dump
+        dump(dns_features);
+    } else {
+        // predict
+        bool normal = predict(dns_features);
+        std::cout << "transactionID: " << dns_packet.transactionID
+                  << (normal ? " is not malicious" : "is malicious")
+                  << std::endl;
+
+        // erase dns_features
+        dns_features_map.erase(dns_feature_i);
+    }
 }
 
 std::string PacketAnalyzer::getSecondaryDomain(const std::string& domain) {

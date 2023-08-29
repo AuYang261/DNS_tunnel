@@ -7,6 +7,7 @@
 #include <queue>
 #include <tuple>
 
+#include "common.h"
 #include "packets.h"
 
 struct DNSFeatures {
@@ -36,7 +37,7 @@ double operator-(const timespec& lhs, double rhs);
 
 class PacketAnalyzer {
    public:
-    void init();
+    void init(const Config& config);
     ~PacketAnalyzer() = delete;
     inline static PacketAnalyzer& getInstance() {
         if (instance == nullptr) {
@@ -52,12 +53,14 @@ class PacketAnalyzer {
     void loadModel();
     void saveModel();
     bool predict(const DNSFeatures&);
+    void dump(const DNSFeatures&);
     void analyseQuery(DNSPacket& dns_packet);
     void analyseResponse(DNSPacket& dns_packet);
     static std::string getSecondaryDomain(const std::string& domain);
     static std::string getSubdomain(const std::string& domain);
     static double toSecond(const timespec& ts);
 
+    bool if_dump = false;
     PyObject* py_script;
     PyObject* func_load_model;
     PyObject* func_save_model;
@@ -71,6 +74,7 @@ class PacketAnalyzer {
     static inline const std::string model_name = "model";
     static inline const std::string py_script_path = "../py/";
     static inline const std::string py_script_name = "iforest";
+    static inline const std::string features_file_name = "dns_features.csv";
     static inline const double window_time_second = 10.0;
 
     inline static PacketAnalyzer* instance;
