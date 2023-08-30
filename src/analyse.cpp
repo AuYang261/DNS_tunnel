@@ -8,7 +8,7 @@
         throw std::runtime_error(#val + std::string(" is null")); \
     }
 
-double operator-(const timespec& lhs, double rhs) {
+double operator-(const timespec& lhs, const double rhs) {
     return lhs.tv_sec + lhs.tv_nsec / 1000000000.0 - rhs;
 }
 
@@ -91,7 +91,7 @@ void PacketAnalyzer::saveModel() {
     PyErr_Print();
 }
 
-bool PacketAnalyzer::predict(const DNSFeatures& dns_features) {
+double PacketAnalyzer::predict(const DNSFeatures& dns_features) {
     // TODO
     // get function predict's parameter
     PyObject* predict_args = Py_BuildValue("(O,[i,i])", model, 2, 2);
@@ -100,8 +100,8 @@ bool PacketAnalyzer::predict(const DNSFeatures& dns_features) {
     check_null(predict_result);
     // predict, needn't to save model
     // saveModel();
-    // check if predict_result is true
-    return PyObject_IsTrue(predict_result);
+    // return predict_result as double
+    return PyFloat_AsDouble(predict_result);
 }
 
 void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
@@ -223,10 +223,9 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
         dump(dns_features);
     } else {
         // predict
-        bool normal = predict(dns_features);
+        double result = predict(dns_features);
         std::cout << "transactionID: " << dns_packet.transactionID
-                  << (normal ? " is not malicious" : "is malicious")
-                  << std::endl;
+                  << " normal confidence: " << result << std::endl;
 
     }
     // erase dns_features
