@@ -30,20 +30,21 @@ def save_model(model: IsolationForest, path: str, name: str):
 # fit and predict one data with n-dimensional features
 # data: 1 dimensional list
 # return True if the data is normal
-def predict(model: IsolationForest, data: list) -> bool:
+def predict(model: IsolationForest, data: list) -> float:
     print("predicting data: ", data)
     dataArray = np.array(data)
-    if dataArray.ndim != 1:
-        print("Warning: data.ndim != 1")
-    pred = model.predict(dataArray.reshape(1, -1))
+    if dataArray.shape != (1,):
+        print("Warning: data.shape != (1,)")
+    pred = model.decision_function(dataArray.reshape(1, -1))
     print("pred: ", pred)
-    return (pred == 1).all()
+    return pred[0]
 
 
 def train():
     features = np.loadtxt("models/dns_features.csv", delimiter=",")
     clf = IsolationForest(max_samples=features.shape[0])
     print(clf.fit_predict(features))
+    print(clf.decision_function(features))
     save_model(clf, "models", "model")
     pass
 

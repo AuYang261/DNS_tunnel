@@ -33,7 +33,7 @@ typedef std::queue<DNSPacket> DNSPacketWindow;
 // number of each subdomain in slide window
 typedef std::map<std::string, int> SecondaryDomainCountMap;
 
-double operator-(const timespec& lhs, double rhs);
+double operator-(const timespec& lhs, const double rhs);
 
 class PacketAnalyzer {
    public:
@@ -52,7 +52,7 @@ class PacketAnalyzer {
     PacketAnalyzer();
     void loadModel();
     void saveModel();
-    bool predict(const DNSFeatures&);
+    double predict(const DNSFeatures&);
     void dump(const DNSFeatures&);
     void analyseQuery(DNSPacket& dns_packet);
     void analyseResponse(DNSPacket& dns_packet);
