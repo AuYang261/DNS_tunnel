@@ -13,7 +13,17 @@ enum CAPTURE_RUN_RESULT { CAPTURE_RUN_RESULT_OK, CAPTURE_RUN_RESULT_ERROR };
 
 struct Config {
     std::string source_name;  // net device name, or capture file path
-    bool train_mode = true;   // train mode
+    bool train_mode;   // train mode
+
+	Config(bool train_mode=true) : train_mode(train_mode) {
+#ifdef _MACOS_
+		source_name = "en0";
+#elif _LINUX_
+		source_name = "eth0";	
+#endif	// _MACOS_
+	}
+
+	Config(std::string source_name, bool train_mode=false) : source_name(source_name), train_mode(train_mode) {}
 };
 
 #endif  // _COMMON_H_

@@ -1,6 +1,5 @@
 #include "analyse.h"
 
-#include <fstream>
 #include <iostream>  // for test
 
 #define check_null(val)                                           \
@@ -13,12 +12,21 @@ double operator-(const timespec& lhs, double rhs) {
     return lhs.tv_sec + lhs.tv_nsec / 1000000000.0 - rhs;
 }
 
+int operator-(const timespec& lhs, const timespec& rhs) {
+    return lhs.tv_sec - rhs.tv_sec - (lhs.tv_nsec < rhs.tv_nsec);
+}
+
 PacketAnalyzer::PacketAnalyzer() {
     // TODO
 }
 
 void PacketAnalyzer::init(const Config& config) {
     if_dump = config.train_mode;
+    // open dump file
+    if (if_dump) {
+        dump_file = std::fstream(model_path + features_file_name,
+                                 std::ios::out | std::ios::app);
+    }
     Py_Initialize();
     PyRun_SimpleString("import sys");
     // add path
@@ -50,6 +58,18 @@ void PacketAnalyzer::init(const Config& config) {
     if (!if_dump) {
         loadModel();
     }
+}
+
+void PacketAnalyzer::finish() {
+    printf("Clean up analyzer...\n");
+    // TODO: display stats
+    if (if_dump) {
+        dump_file.close();
+    } else {
+        // saveModel();
+        // can do some finishing cleaning
+    }
+    Py_Finalize();
 }
 
 void PacketAnalyzer::loadModel() {
@@ -86,15 +106,12 @@ bool PacketAnalyzer::predict(const DNSFeatures& dns_features) {
 
 void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
     // save dns_features to file
-    std::fstream file(model_path + features_file_name,
-                      std::ios::out | std::ios::app);
-    file << dns_features.subdomain_len << "," << dns_features.capital_count
+    dump_file << dns_features.subdomain_len << "," << dns_features.capital_count
          << "," << dns_features.entropy << ","
          << dns_features.longest_vowel_distance << ","
          << dns_features.request_num_in_window << ","
          << dns_features.response_time << ","
          << dns_features.payload_up_down_ratio << std::endl;
-    file.close();
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -115,16 +132,15 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     std::cout << "analyseQuery " << dns_packet.transactionID << std::endl;
     dns_packet_window.push(dns_packet);
     while (!dns_packet_window.empty() &&
-           toSecond(dns_packet_window.front().timestamp) <
-               dns_packet.timestamp - window_time_second) {
+            dns_packet.timestamp - dns_packet_window.front().timestamp >= window_time_second) {
         // pop and update secondary_domain_count_map
         auto subdomain_count_i = secondary_domain_count_map.find(
             getSecondaryDomain(dns_packet_window.front().domain));
         if (subdomain_count_i != secondary_domain_count_map.end()) {
             subdomain_count_i->second--;
-        }
-        if (subdomain_count_i->second == 0) {
-            secondary_domain_count_map.erase(subdomain_count_i);
+            if (subdomain_count_i->second == 0) {
+                secondary_domain_count_map.erase(subdomain_count_i);
+            }
         }
         dns_packet_window.pop();
     }
@@ -212,9 +228,9 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
                   << (normal ? " is not malicious" : "is malicious")
                   << std::endl;
 
-        // erase dns_features
-        dns_features_map.erase(dns_feature_i);
     }
+    // erase dns_features
+    dns_features_map.erase(dns_feature_i);
 }
 
 std::string PacketAnalyzer::getSecondaryDomain(const std::string& domain) {

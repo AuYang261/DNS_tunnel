@@ -6,6 +6,7 @@
 #include <map>
 #include <queue>
 #include <tuple>
+#include <fstream>
 
 #include "common.h"
 #include "packets.h"
@@ -38,6 +39,7 @@ double operator-(const timespec& lhs, double rhs);
 class PacketAnalyzer {
    public:
     void init(const Config& config);
+    void finish();
     ~PacketAnalyzer() = delete;
     inline static PacketAnalyzer& getInstance() {
         if (instance == nullptr) {
@@ -69,13 +71,14 @@ class PacketAnalyzer {
     DNSFeaturesMap dns_features_map;
     DNSPacketWindow dns_packet_window;
     SecondaryDomainCountMap secondary_domain_count_map;
+    std::fstream dump_file;
 
     static inline const std::string model_path = "../models/";
     static inline const std::string model_name = "model";
     static inline const std::string py_script_path = "../py/";
     static inline const std::string py_script_name = "iforest";
     static inline const std::string features_file_name = "dns_features.csv";
-    static inline const double window_time_second = 10.0;
+    static inline const int window_time_second = 10;
 
     inline static PacketAnalyzer* instance;
 };

@@ -44,6 +44,7 @@ def train():
     features = np.loadtxt("models/dns_features.csv", delimiter=",")
     clf = IsolationForest(max_samples=features.shape[0])
     print(clf.fit_predict(features))
+    print(clf.decision_function(features))
     save_model(clf, "models", "model")
     pass
 
