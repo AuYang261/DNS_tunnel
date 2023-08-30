@@ -82,12 +82,11 @@ CAPTURE_RUN_RESULT CaptureDevice::run() {
 void CaptureDevice::printDeviceInfo() {
     printf("Interface info:\n");
     printf("   Interface name:        %s\n", dev->getName().c_str());
-    printf("   Interface description: %s\n", dev->getDesc().c_str());
     printf("   MAC address:           %s\n", dev->getMacAddress().toString().c_str());
+    printf("   Interface IPv4 addr:   %s\n", dev->getIPv4Address().toString().c_str());
     printf("   Default gateway:       %s\n", dev->getDefaultGateway().toString().c_str());
     printf("   Interface MTU:         %d\n", dev->getMtu());
     printf("   Major DNS server:      %s\n", dev->getDnsServers().front().toString().c_str());
-    printf("   Interface IPv4 addr:   %s\n", dev->getIPv4Address().toString().c_str());
 }
 
 void CaptureDevice::onPacketArrives(pcpp::RawPacket* raw_packet,

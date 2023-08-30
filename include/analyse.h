@@ -27,8 +27,8 @@ struct DNSFeatures {
     double payload_up_down_ratio = 0;
 };
 
-// transactionID -> (DNSFeatures, timestamp)
-typedef std::map<uint16_t, DNSFeatures> DNSFeaturesMap;
+// id -> (DNSFeatures, timestamp)
+typedef std::map<uint32_t, DNSFeatures> DNSFeaturesMap;
 // slide window
 typedef std::queue<DNSPacket> DNSPacketWindow;
 // number of each subdomain in slide window

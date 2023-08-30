@@ -129,7 +129,7 @@ void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
 }
 
 void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
-    std::cout << "analyseQuery " << dns_packet.transactionID << std::endl;
+    std::cout << "analyseQuery 0x" << std::hex << dns_packet.id << std::endl;
     dns_packet_window.push(dns_packet);
     while (!dns_packet_window.empty() &&
             dns_packet.timestamp - dns_packet_window.front().timestamp >= window_time_second) {
@@ -189,24 +189,24 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     // payload_up_down_ratio, recorded as query size temporarily
     dns_features.payload_up_down_ratio = dns_packet.size;
 
-    if (dns_features_map.count(dns_packet.transactionID) == 0) {
-        dns_features_map[dns_packet.transactionID] = dns_features;
+    if (dns_features_map.count(dns_packet.id) == 0) {
+        dns_features_map[dns_packet.id] = dns_features;
     } else {
-        std::cout << "transactionID: " << dns_packet.transactionID
+        std::cout << "id: 0x" << std::hex << dns_packet.id
                   << " already exists" << std::endl;
         // print all the transactionIDs in dns_features_map
-        // for (auto&& [transactionID, dns_features] : dns_features_map) {
-        //     std::cout << transactionID << std::endl;
+        // for (auto&& [id, dns_features] : dns_features_map) {
+        //     std::cout << id << std::endl;
         // }
     }
 }
 
 void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
-    std::cout << "analyseResponse " << dns_packet.transactionID << std::endl;
+    std::cout << "analyseResponse 0x" << std::hex << dns_packet.id << std::endl;
     // analyse response to DNSFeatures
-    auto dns_feature_i = dns_features_map.find(dns_packet.transactionID);
+    auto dns_feature_i = dns_features_map.find(dns_packet.id);
     if (dns_feature_i == dns_features_map.end()) {
-        std::cout << "transactionID: " << dns_packet.transactionID
+        std::cout << "id: 0x" << std::hex << dns_packet.id
                   << " not found" << std::endl;
         return;
     }
@@ -224,7 +224,7 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
     } else {
         // predict
         double result = predict(dns_features);
-        std::cout << "transactionID: " << dns_packet.transactionID
+        std::cout << "id: 0x" << std::hex << dns_packet.id
                   << " normal confidence: " << result << std::endl;
 
     }
