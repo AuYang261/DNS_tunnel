@@ -44,7 +44,14 @@ def train():
     features = np.loadtxt("models/dns_features.csv", delimiter=",")
     clf = IsolationForest(max_samples=features.shape[0])
     print(clf.fit_predict(features))
-    print(clf.decision_function(features))
+    d = clf.decision_function(features)
+    # plot d sored and save
+    d = np.sort(d)
+    import matplotlib.pyplot as plt
+
+    plt.plot(d)
+    plt.savefig("models/d.png")
+    print(d)
     save_model(clf, "models", "model")
     pass
 
