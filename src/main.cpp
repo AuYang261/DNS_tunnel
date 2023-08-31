@@ -5,10 +5,9 @@
 int main() {
     // first test capture file
     Config config;
-    // // // config.source_name = "../data/dns-mail-2.pcap";
-    // // CaptureFile capture(config);
-    // capture.run();
-    CaptureDevice capture(config);
+    config.source_name = "../data/20230831_1.pcapng";
+    CaptureFile capture(config);
+    // CaptureDevice capture(config);
     capture.run();
     return 0;
 }
