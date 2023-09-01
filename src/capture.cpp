@@ -16,7 +16,7 @@ static void sigintHandler(int sig) {
 }
 
 CaptureFile::CaptureFile(Config config) : Capture(config) {
-    reader = pcpp::IFileReaderDevice::getReader(config.source_name);
+    reader = pcpp::IFileReaderDevice::getReader(config.workdir + config.source_name);
     if (reader == nullptr || !reader->open()) {
         throw std::runtime_error("Failed to open capture file");
     }

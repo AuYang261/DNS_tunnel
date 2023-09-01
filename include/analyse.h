@@ -76,12 +76,14 @@ class PacketAnalyzer {
     SecondaryDomainCountMap domain_count_long;
     SecondaryDomainCountMap domain_count_short;
     std::fstream dump_file;
+    std::string workdir;
+    std::string features_file_name;
 
-    static inline const std::string model_path = "../models/";
+    static inline const std::string model_path = "./models/";
     static inline const std::string model_name = "model";
-    static inline const std::string py_script_path = "../py/";
+    static inline const std::string py_script_path = "./py/";
     static inline const std::string py_script_name = "iforest";
-    static inline const std::string features_file_name = "dns_features.csv";
+    // static inline const std::string features_file_name = "dns_features.csv";
     static inline const int LONG_TERM_WIDTH = 20;  // in second
     static inline const int SHORT_TERM_WIDTH = 2;   // in second
 

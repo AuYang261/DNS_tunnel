@@ -13,6 +13,8 @@ enum CAPTURE_RUN_RESULT { CAPTURE_RUN_RESULT_OK, CAPTURE_RUN_RESULT_ERROR };
 
 struct Config {
     std::string source_name;  // net device name, or capture file path
+	std::string workdir = "../";
+	std::string features_dump_file = "dns_features.csv";
     bool train_mode;   // train mode
 
 	Config(bool train_mode=true) : train_mode(train_mode) {
@@ -23,7 +25,7 @@ struct Config {
 #endif	// _MACOS_
 	}
 
-	Config(std::string source_name, bool train_mode=false) : source_name(source_name), train_mode(train_mode) {}
+	Config(std::string source_name, std::string workdir, bool train_mode=false) : source_name(source_name), workdir(workdir), train_mode(train_mode) {}
 };
 
 #endif  // _COMMON_H_

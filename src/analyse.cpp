@@ -17,20 +17,21 @@ int operator-(const timespec& lhs, const timespec& rhs) {
 }
 
 PacketAnalyzer::PacketAnalyzer() {
-    // TODO
 }
 
 void PacketAnalyzer::init(const Config& config) {
     if_dump = config.train_mode;
+    workdir = config.workdir;
+    features_file_name = config.features_dump_file;
     // open dump file
     if (if_dump) {
-        dump_file = std::fstream(model_path + features_file_name,
+        dump_file = std::fstream(workdir + model_path + features_file_name,
                                  std::ios::out | std::ios::app);
     }
     Py_Initialize();
     PyRun_SimpleString("import sys");
     // add path
-    PyRun_SimpleString(("sys.path.append(\"" + py_script_path + "\")").c_str());
+    PyRun_SimpleString(("sys.path.append(\"" + workdir + py_script_path + "\")").c_str());
     PyErr_Print();
     // import py_script
     py_script = PyImport_ImportModule(py_script_name.c_str());
@@ -75,7 +76,7 @@ void PacketAnalyzer::finish() {
 void PacketAnalyzer::loadModel() {
     // pass a string to function load_model
     PyObject* load_model_args =
-        Py_BuildValue("(s)", (model_path + model_name).c_str());
+        Py_BuildValue("(s)", (workdir + model_path + model_name).c_str());
     check_null(load_model_args);
     // call function load_model
     model = PyObject_CallObject(func_load_model, load_model_args);
@@ -85,7 +86,7 @@ void PacketAnalyzer::loadModel() {
 void PacketAnalyzer::saveModel() {
     // pass model and a string to function save_model
     PyObject* save_model_args =
-        Py_BuildValue("(Oss)", model, model_path.c_str(), model_name.c_str());
+        Py_BuildValue("(Oss)", model, (workdir + model_path).c_str(), model_name.c_str());
     // call function save_model
     PyObject_CallObject(func_save_model, save_model_args);
     PyErr_Print();
