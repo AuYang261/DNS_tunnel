@@ -106,12 +106,12 @@ double PacketAnalyzer::predict(const DNSFeatures& dns_features) {
 void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
     // save dns_features to file
     dump_file << dns_features.subdomain_len << "," << dns_features.capital_count
-         << "," << dns_features.entropy << ","
-         << dns_features.longest_vowel_distance << ","
-         << dns_features.request_num_in_short_window << ","
-         << dns_features.response_time << ","
-         << dns_features.payload_up_down_ratio << ","
-         << dns_features.long_short_term_ratio << std::endl;
+              << "," << dns_features.entropy << ","
+              << dns_features.longest_vowel_distance << ","
+              << dns_features.request_num_in_short_window << ","
+              << dns_features.response_time << ","
+              << dns_features.payload_up_down_ratio << ","
+              << dns_features.long_short_term_ratio << std::endl;
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -132,7 +132,8 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     std::cout << "analyseQuery 0x" << std::hex << dns_packet.id << std::endl;
     packet_window_long.push(dns_packet);
     while (!packet_window_long.empty() &&
-            dns_packet.timestamp - packet_window_long.front().timestamp >= LONG_TERM_WIDTH) {
+           dns_packet.timestamp - packet_window_long.front().timestamp >=
+               LONG_TERM_WIDTH) {
         // pop and update secondary_domain_count_map
         auto subdomain_count_i = domain_count_long.find(
             getSecondaryDomain(packet_window_long.front().domain));
@@ -146,7 +147,8 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     }
     packet_window_short.push(dns_packet);
     while (!packet_window_short.empty() &&
-            dns_packet.timestamp - packet_window_short.front().timestamp >= SHORT_TERM_WIDTH) {
+           dns_packet.timestamp - packet_window_short.front().timestamp >=
+               SHORT_TERM_WIDTH) {
         // pop and update secondary_domain_count_map
         auto subdomain_count_i = domain_count_short.find(
             getSecondaryDomain(packet_window_short.front().domain));
@@ -159,17 +161,16 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
         packet_window_short.pop();
     }
     // update secondary_domain_count_map
-    auto domain_count_idx_long =
-        domain_count_long.find(getSecondaryDomain(dns_packet.domain));
+    auto secondary_domain = getSecondaryDomain(dns_packet.domain);
+    auto domain_count_idx_long = domain_count_long.find(secondary_domain);
     if (domain_count_idx_long == domain_count_long.end()) {
-        domain_count_long[dns_packet.domain] = 1;
+        domain_count_long[secondary_domain] = 1;
     } else {
         domain_count_idx_long->second++;
     }
-    auto domain_count_idx_short = 
-        domain_count_short.find(getSecondaryDomain(dns_packet.domain));
+    auto domain_count_idx_short = domain_count_short.find(secondary_domain);
     if (domain_count_idx_short == domain_count_short.end()) {
-        domain_count_short[dns_packet.domain] = 1;
+        domain_count_short[secondary_domain] = 1;
     } else {
         domain_count_idx_short->second++;
     }
@@ -204,11 +205,13 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
             std::max(dns_features.longest_vowel_distance, vowel_distance);
     }
     // request_num_in_short_window
-    dns_features.request_num_in_short_window = domain_count_idx_long->second;
+    dns_features.request_num_in_short_window =
+        domain_count_long[secondary_domain];
     // LSTR
     dns_features.long_short_term_ratio =
-        (double)domain_count_idx_long->second / domain_count_idx_short->second;
-    // response_time, recorded as the request time temporarily
+        (double)domain_count_long[secondary_domain] /
+        domain_count_short[secondary_domain];  // response_time, recorded as the
+                                               // request time temporarily
     dns_features.response_time = toSecond(dns_packet.timestamp);
     // payload_up_down_ratio, recorded as query size temporarily
     dns_features.payload_up_down_ratio = dns_packet.size;
@@ -216,8 +219,8 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     if (dns_features_map.count(dns_packet.id) == 0) {
         dns_features_map[dns_packet.id] = dns_features;
     } else {
-        std::cout << "id: 0x" << std::hex << dns_packet.id
-                  << " already exists" << std::endl;
+        std::cout << "id: 0x" << std::hex << dns_packet.id << " already exists"
+                  << std::endl;
         // print all the transactionIDs in dns_features_map
         // for (auto&& [id, dns_features] : dns_features_map) {
         //     std::cout << id << std::endl;
@@ -230,8 +233,8 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
     // analyse response to DNSFeatures
     auto dns_feature_i = dns_features_map.find(dns_packet.id);
     if (dns_feature_i == dns_features_map.end()) {
-        std::cout << "id: 0x" << std::hex << dns_packet.id
-                  << " not found" << std::endl;
+        std::cout << "id: 0x" << std::hex << dns_packet.id << " not found"
+                  << std::endl;
         return;
     }
     DNSFeatures& dns_features = dns_feature_i->second;
@@ -250,7 +253,6 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
         double result = predict(dns_features);
         std::cout << "id: 0x" << std::hex << dns_packet.id
                   << " normal confidence: " << result << std::endl;
-
     }
     // erase dns_features
     dns_features_map.erase(dns_feature_i);
