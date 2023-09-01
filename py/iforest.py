@@ -44,7 +44,7 @@ def train():
     features_normal_all = np.loadtxt("models/dns_features_normal.csv", delimiter=",")
     features_abnormal_all = np.loadtxt(
         "models/dns_features_abnormal.csv", delimiter=","
-    )
+    )[:, :7]
     # select some samples from features_normal and features_abnormal randomly
     features_normal = features_normal_all
     features_abnormal = features_abnormal_all[
@@ -64,6 +64,8 @@ def train():
 def test(clf: IsolationForest, features_normal_all, features_abnormal_all):
     print("Test Set:")
     # calculate the accuracy, precision and recall of all features
+    # features_normal_all[:, 4] = 0
+    # features_abnormal_all[:, 4] = 0
     d_normal_all = clf.decision_function(features_normal_all)
     d_abnormal_all = clf.decision_function(features_abnormal_all)
     threshold = np.mean(
@@ -79,6 +81,18 @@ def test(clf: IsolationForest, features_normal_all, features_abnormal_all):
     print("accuracy_all: {:.2f}%".format(accuracy_all * 100))
     print("precision_all: {:.2f}%".format(precision_all * 100))
     print("recall_all: {:.2f}%".format(recall_all * 100))
+
+    # calculate each feature's corelation with the label
+    for i in range(features_normal_all.shape[1]):
+        correlation = np.corrcoef(
+            np.c_[
+                # TODO
+                features_normal_all[:, i].reshape(1, -1),
+                features_abnormal_all[:, i].reshape(1, -1),
+            ],
+            np.c_[d_normal_all.reshape(1, -1), d_abnormal_all.reshape(1, -1)],
+        )[0, 1]
+        print("feature {}'s correlation: {}".format(i, correlation))
 
     import matplotlib.pyplot as plt
 
