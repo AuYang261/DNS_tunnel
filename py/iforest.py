@@ -44,7 +44,7 @@ def train():
     features_normal_all = np.loadtxt("models/dns_features_normal.csv", delimiter=",")
     features_abnormal_all = np.loadtxt(
         "models/dns_features_abnormal.csv", delimiter=","
-    )[:, :7]
+    )
     # select some samples from features_normal and features_abnormal randomly
     features_normal = features_normal_all
     features_abnormal = features_abnormal_all[
