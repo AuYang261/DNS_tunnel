@@ -108,7 +108,7 @@ void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
     dump_file << dns_features.subdomain_len << "," << dns_features.capital_count
               << "," << dns_features.entropy << ","
               << dns_features.longest_vowel_distance << ","
-              << dns_features.request_num_in_short_window << ","
+              << dns_features.request_num_in_long_window << ","
               << dns_features.response_time << ","
               << dns_features.payload_up_down_ratio << ","
               << dns_features.long_short_term_ratio << std::endl;
@@ -175,6 +175,9 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
         domain_count_idx_short->second++;
     }
 
+    auto current_domain_count_long = domain_count_long[secondary_domain];
+    auto current_domain_count_short = domain_count_short[secondary_domain];
+
     // analyse query to DNSFeatures
     DNSFeatures dns_features{};
     std::string subdomain = getSubdomain(dns_packet.domain);
@@ -204,27 +207,21 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
         dns_features.longest_vowel_distance =
             std::max(dns_features.longest_vowel_distance, vowel_distance);
     }
-    // request_num_in_short_window
-    dns_features.request_num_in_short_window =
-        domain_count_long[secondary_domain];
+    // request_num_in_long_window
+    dns_features.request_num_in_long_window =
+        current_domain_count_long;
     // LSTR
     dns_features.long_short_term_ratio =
-        (double)domain_count_long[secondary_domain] /
-        domain_count_short[secondary_domain];  // response_time, recorded as the
-                                               // request time temporarily
+        (double)current_domain_count_long / current_domain_count_short;
     dns_features.response_time = toSecond(dns_packet.timestamp);
     // payload_up_down_ratio, recorded as query size temporarily
-    dns_features.payload_up_down_ratio = dns_packet.size;
+    dns_features.payload_up_down_ratio = (double)dns_packet.size;
 
     if (dns_features_map.count(dns_packet.id) == 0) {
         dns_features_map[dns_packet.id] = dns_features;
     } else {
         std::cout << "id: 0x" << std::hex << dns_packet.id << " already exists"
                   << std::endl;
-        // print all the transactionIDs in dns_features_map
-        // for (auto&& [id, dns_features] : dns_features_map) {
-        //     std::cout << id << std::endl;
-        // }
     }
 }
 

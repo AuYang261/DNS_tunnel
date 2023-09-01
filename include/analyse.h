@@ -19,14 +19,14 @@ struct DNSFeatures {
     double entropy = 0;
     // 子域名的最长元音距
     int longest_vowel_distance = 0;
-    // 窗口内请求数
-    int request_num_in_short_window = 0;
-    // 长短窗口请求比
-    double long_short_term_ratio;
     // 响应时间，秒
     double response_time;
     // 有效载荷的上传/下载比
     double payload_up_down_ratio = 0;
+    // 窗口内请求数
+    int request_num_in_long_window = 0;
+    // 长短窗口请求比
+    double long_short_term_ratio;
 };
 
 // id -> (DNSFeatures, timestamp)
@@ -83,7 +83,7 @@ class PacketAnalyzer {
     static inline const std::string py_script_name = "iforest";
     static inline const std::string features_file_name = "dns_features.csv";
     static inline const int LONG_TERM_WIDTH = 20;  // in second
-    static inline const int SHORT_TERM_WIDTH = 1;   // in second
+    static inline const int SHORT_TERM_WIDTH = 2;   // in second
 
     inline static PacketAnalyzer* instance;
 };
