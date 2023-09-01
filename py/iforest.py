@@ -46,11 +46,14 @@ def train():
         "models/dns_features_abnormal.csv", delimiter=","
     )
     # select some samples from features_normal and features_abnormal randomly
-    features_normal = features_normal_all[
-        np.random.randint(0, features_normal_all.shape[0], 2000)
-    ]
+    features_normal = features_normal_all
     features_abnormal = features_abnormal_all[
-        np.random.randint(0, features_abnormal_all.shape[0], 20)
+        np.random.randint(
+            0,
+            features_abnormal_all.shape[0],
+            min(features_normal.shape[0] // 100, features_abnormal_all.shape[0]),
+        ),
+        :,
     ]
     features = np.concatenate((features_normal, features_abnormal), axis=0)
     clf = IsolationForest(max_samples=features.shape[0])
@@ -64,8 +67,8 @@ def test(clf: IsolationForest, features_normal_all, features_abnormal_all):
     d_normal_all = clf.decision_function(features_normal_all)
     d_abnormal_all = clf.decision_function(features_abnormal_all)
     threshold = np.mean(
-        np.sort(d_normal_all)[d_normal_all.shape[0] // 10 :].mean()
-        + np.sort(d_abnormal_all)[: -d_abnormal_all.shape[0] // 10].mean()
+        np.sort(d_normal_all)[d_normal_all.shape[0] // 15 :].mean()
+        + np.sort(d_abnormal_all)[: -d_abnormal_all.shape[0] // 15].mean()
     )
     print("threshold: ", threshold)
     accuracy_all = (
