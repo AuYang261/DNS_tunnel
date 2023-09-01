@@ -20,7 +20,9 @@ struct DNSFeatures {
     // 子域名的最长元音距
     int longest_vowel_distance = 0;
     // 窗口内请求数
-    int request_num_in_window = 0;
+    int request_num_in_short_window = 0;
+    // 长短窗口请求比
+    double long_short_term_ratio;
     // 响应时间，秒
     double response_time;
     // 有效载荷的上传/下载比
@@ -69,8 +71,10 @@ class PacketAnalyzer {
     PyObject* func_predict;
     PyObject* model;
     DNSFeaturesMap dns_features_map;
-    DNSPacketWindow dns_packet_window;
-    SecondaryDomainCountMap secondary_domain_count_map;
+    DNSPacketWindow packet_window_long;
+    DNSPacketWindow packet_window_short;
+    SecondaryDomainCountMap domain_count_long;
+    SecondaryDomainCountMap domain_count_short;
     std::fstream dump_file;
 
     static inline const std::string model_path = "../models/";
@@ -78,7 +82,8 @@ class PacketAnalyzer {
     static inline const std::string py_script_path = "../py/";
     static inline const std::string py_script_name = "iforest";
     static inline const std::string features_file_name = "dns_features.csv";
-    static inline const int window_time_second = 10;
+    static inline const int LONG_TERM_WIDTH = 20;  // in second
+    static inline const int SHORT_TERM_WIDTH = 1;   // in second
 
     inline static PacketAnalyzer* instance;
 };

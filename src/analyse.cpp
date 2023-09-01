@@ -92,7 +92,6 @@ void PacketAnalyzer::saveModel() {
 }
 
 double PacketAnalyzer::predict(const DNSFeatures& dns_features) {
-    // TODO
     // get function predict's parameter
     PyObject* predict_args = Py_BuildValue("(O,[i,i])", model, 2, 2);
     // call function predict
@@ -109,9 +108,10 @@ void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
     dump_file << dns_features.subdomain_len << "," << dns_features.capital_count
          << "," << dns_features.entropy << ","
          << dns_features.longest_vowel_distance << ","
-         << dns_features.request_num_in_window << ","
+         << dns_features.request_num_in_short_window << ","
          << dns_features.response_time << ","
-         << dns_features.payload_up_down_ratio << std::endl;
+         << dns_features.payload_up_down_ratio << ","
+         << dns_features.long_short_term_ratio << std::endl;
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -130,27 +130,48 @@ void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
 
 void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
     std::cout << "analyseQuery 0x" << std::hex << dns_packet.id << std::endl;
-    dns_packet_window.push(dns_packet);
-    while (!dns_packet_window.empty() &&
-            dns_packet.timestamp - dns_packet_window.front().timestamp >= window_time_second) {
+    packet_window_long.push(dns_packet);
+    while (!packet_window_long.empty() &&
+            dns_packet.timestamp - packet_window_long.front().timestamp >= LONG_TERM_WIDTH) {
         // pop and update secondary_domain_count_map
-        auto subdomain_count_i = secondary_domain_count_map.find(
-            getSecondaryDomain(dns_packet_window.front().domain));
-        if (subdomain_count_i != secondary_domain_count_map.end()) {
+        auto subdomain_count_i = domain_count_long.find(
+            getSecondaryDomain(packet_window_long.front().domain));
+        if (subdomain_count_i != domain_count_long.end()) {
             subdomain_count_i->second--;
             if (subdomain_count_i->second == 0) {
-                secondary_domain_count_map.erase(subdomain_count_i);
+                domain_count_long.erase(subdomain_count_i);
             }
         }
-        dns_packet_window.pop();
+        packet_window_long.pop();
+    }
+    packet_window_short.push(dns_packet);
+    while (!packet_window_short.empty() &&
+            dns_packet.timestamp - packet_window_short.front().timestamp >= SHORT_TERM_WIDTH) {
+        // pop and update secondary_domain_count_map
+        auto subdomain_count_i = domain_count_short.find(
+            getSecondaryDomain(packet_window_short.front().domain));
+        if (subdomain_count_i != domain_count_short.end()) {
+            subdomain_count_i->second--;
+            if (subdomain_count_i->second == 0) {
+                domain_count_short.erase(subdomain_count_i);
+            }
+        }
+        packet_window_short.pop();
     }
     // update secondary_domain_count_map
-    auto secondary_domain_count_i =
-        secondary_domain_count_map.find(getSecondaryDomain(dns_packet.domain));
-    if (secondary_domain_count_i == secondary_domain_count_map.end()) {
-        secondary_domain_count_map[dns_packet.domain] = 1;
+    auto domain_count_idx_long =
+        domain_count_long.find(getSecondaryDomain(dns_packet.domain));
+    if (domain_count_idx_long == domain_count_long.end()) {
+        domain_count_long[dns_packet.domain] = 1;
     } else {
-        secondary_domain_count_i->second++;
+        domain_count_idx_long->second++;
+    }
+    auto domain_count_idx_short = 
+        domain_count_short.find(getSecondaryDomain(dns_packet.domain));
+    if (domain_count_idx_short == domain_count_short.end()) {
+        domain_count_short[dns_packet.domain] = 1;
+    } else {
+        domain_count_idx_short->second++;
     }
 
     // analyse query to DNSFeatures
@@ -182,8 +203,11 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
         dns_features.longest_vowel_distance =
             std::max(dns_features.longest_vowel_distance, vowel_distance);
     }
-    // request_num_in_window
-    dns_features.request_num_in_window = secondary_domain_count_i->second;
+    // request_num_in_short_window
+    dns_features.request_num_in_short_window = domain_count_idx_long->second;
+    // LSTR
+    dns_features.long_short_term_ratio =
+        (double)domain_count_idx_long->second / domain_count_idx_short->second;
     // response_time, recorded as the request time temporarily
     dns_features.response_time = toSecond(dns_packet.timestamp);
     // payload_up_down_ratio, recorded as query size temporarily
