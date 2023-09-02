@@ -13,11 +13,11 @@ enum CAPTURE_RUN_RESULT { CAPTURE_RUN_RESULT_OK, CAPTURE_RUN_RESULT_ERROR };
 
 struct Config {
     std::string source_name;  // net device name, or capture file path
-	std::string workdir = "../";
+	std::string workdir = "./";
 	std::string features_dump_file = "dns_features.csv";
-    bool train_mode;   // train mode
+    bool train_mode = false;   // train mode
 
-	Config(bool train_mode=true) : train_mode(train_mode) {
+	Config() {
 #ifdef _MACOS_
 		source_name = "en0";
 #elif _LINUX_

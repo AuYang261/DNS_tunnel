@@ -8,11 +8,11 @@
 enum DNS_TYPE { DNS_TYPE_NONE, DNS_TYPE_QUERY, DNS_TYPE_RESPONSE };
 
 struct DNSPacket {
-    uint32_t id;     // TODO: update to hash ID, hash with source and dest IP
+    uint32_t id;    // hashed id
     timespec timestamp;
-    DNS_TYPE type;
-    std::string domain;
-    int size;
+    DNS_TYPE type;  // query or response
+    std::string domain; // query domain name, used only in query packet
+    int size;   // DNS payload size
 };
 
 DNSPacket parseDNSPacket(pcpp::RawPacket* packet);
