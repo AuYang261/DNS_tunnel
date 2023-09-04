@@ -1,13 +1,17 @@
 #include "packets.h"
+#include <iostream>
 
-DNSPacket parseDNSPacket(pcpp::RawPacket* packet) {
+DNSPacket parseDNSPacket(pcpp::RawPacket* packet, bool display_dns) {
     DNSPacket dns_packet{};
     pcpp::Packet parsed_packet(packet);
     pcpp::DnsLayer* dns_layer = parsed_packet.getLayerOfType<pcpp::DnsLayer>();
     pcpp::IPLayer* ip_layer = parsed_packet.getLayerOfType<pcpp::IPLayer>();
     dns_packet.id = dns_layer->getDnsHeader()->transactionID;
 
-    
+    if (display_dns) {
+        displayDnsPacket(dns_layer);
+    }
+
     dns_packet.timestamp = packet->getPacketTimeStamp();
     if (dns_layer == nullptr) {
         dns_packet.type = DNS_TYPE::DNS_TYPE_NONE;
@@ -42,4 +46,45 @@ DNSPacket parseDNSPacket(pcpp::RawPacket* packet) {
     }
 
     return dns_packet;
+}
+
+void displayDnsPacket(pcpp::DnsLayer* dns_layer) {
+    std::cout << "DNS packet:" << std::endl;
+    std::cout << "    Transaction ID: " << dns_layer->getDnsHeader()->transactionID << std::endl;
+    std::cout << "    Query/Response: " << (dns_layer->getDnsHeader()->queryOrResponse ? "Response" : "Query") << std::endl;
+    std::cout << "    Questions: " << dns_layer->getDnsHeader()->numberOfQuestions << std::endl;
+    std::cout << "    Answers: " << dns_layer->getDnsHeader()->numberOfAnswers << std::endl;
+    std::cout << "    Authority: " << dns_layer->getDnsHeader()->numberOfAuthority << std::endl;
+    std::cout << "    Additional: " << dns_layer->getDnsHeader()->numberOfAdditional << std::endl;
+    std::cout << "    Domain: " << dns_layer->getFirstQuery()->getName() << std::endl;
+    std::cout << "    Type: ";
+    switch (dns_layer->getFirstQuery()->getDnsType()) {
+        case pcpp::DNS_TYPE_A:
+            std::cout << "A" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_AAAA:
+            std::cout << "AAAA" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_CNAME:
+            std::cout << "CNAME" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_MX:
+            std::cout << "MX" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_NS:
+            std::cout << "NS" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_SOA:
+            std::cout << "SOA" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_SRV:
+            std::cout << "SRV" << std::endl;
+            break;
+        case pcpp::DNS_TYPE_TXT:
+            std::cout << "TXT" << std::endl;
+            break;
+        default:
+            std::cout << "Unknown" << std::endl;
+            break;
+    }
 }

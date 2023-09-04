@@ -16,6 +16,7 @@ struct Config {
 	std::string workdir = "./";
 	std::string features_dump_file = "dns_features.csv";
     bool train_mode = false;   // train mode
+	bool display_dns = false;
 
 	Config() {
 #ifdef _MACOS_

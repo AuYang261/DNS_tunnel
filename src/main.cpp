@@ -15,11 +15,12 @@ int main(int argc, char* argv[]) {
         {"input-file", required_argument, 0, 'f'},
         {"work-dir", required_argument, 0, 'w'},
         {"train-mode", no_argument, 0, 't'},
+        {"display-dns", no_argument, 0, 's'},
         {"help", no_argument, 0, 'h'},
         {0, 0, 0, 0}
     };
     int opt;
-    while ((opt = getopt_long(argc, argv, "f:w:th", long_options, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "df:w:tsh", long_options, nullptr)) != -1) {
         switch (opt) {
             case 'd':
                 use_live_device = false;
@@ -33,15 +34,19 @@ int main(int argc, char* argv[]) {
             case 't':
                 config.train_mode = true;
                 break;
+            case 's':
+                config.display_dns = true;
+                break;
             case 'h':
-                std::cout << "Usage: " << argv[0] << " [--pcap-dump / -d] [--input-file / -f source_name] [--work-dir / -w workdir] [--train-mode / -t]" << std::endl;
+                std::cout << "Usage: " << argv[0] << " [--pcap-dump / -d] [--input-file / -f source_name] [--work-dir / -w workdir] [--display-dns / -s] [--train-mode / -t]" << std::endl;
                 std::cout << "      --pcap-dump: use pcap dump file" << std::endl;
                 std::cout << "      --input-file: specify the input file name" << std::endl;
                 std::cout << "      --work-dir: specify the work directory" << std::endl;
+                std::cout << "      --display-dns: display dns packets" << std::endl;
                 std::cout << "      --train-mode: enable training mode" << std::endl;
                 exit(EXIT_SUCCESS);
             default:
-                std::cout << "Usage: " << argv[0] << " [--pcap-dump / -d] [--input-file / -f source_name] [--work-dir / -w workdir] [--train-mode / -t]" << std::endl;
+                std::cout << "Usage: " << argv[0] << " [--pcap-dump / -d] [--input-file / -f source_name] [--work-dir / -w workdir] [--display-dns / -s] [--train-mode / -t]" << std::endl;
                 exit(EXIT_FAILURE);
         }
     }
@@ -49,6 +54,7 @@ int main(int argc, char* argv[]) {
     std::cout << "    use_live_device: " << (use_live_device ? 'y': 'n') << std::endl;
     std::cout << "    source_name: " << config.source_name << std::endl;
     std::cout << "    workdir: " << config.workdir << std::endl;
+    std::cout << "    display_dns: " << (config.display_dns ? 'y': 'n') << std::endl;
     std::cout << "    train_mode: " << (config.train_mode ? 'y': 'n') << std::endl;
 
     // run capture and analysis

@@ -15,6 +15,8 @@ struct DNSPacket {
     int size;   // DNS payload size
 };
 
-DNSPacket parseDNSPacket(pcpp::RawPacket* packet);
+DNSPacket parseDNSPacket(pcpp::RawPacket* packet, bool display_dns);
+
+void displayDnsPacket(pcpp::DnsLayer* dns_layer);
 
 #endif

@@ -23,6 +23,7 @@ void PacketAnalyzer::init(const Config& config) {
     if_dump = config.train_mode;
     workdir = config.workdir;
     features_file_name = config.features_dump_file;
+    display_dns = config.display_dns;
     // open dump file
     if (if_dump) {
         dump_file = std::fstream(workdir + model_path + features_file_name,
@@ -116,7 +117,7 @@ void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
-    auto&& dns_packet = parseDNSPacket(packet);
+    auto&& dns_packet = parseDNSPacket(packet, display_dns);
     switch (dns_packet.type) {
         case DNS_TYPE::DNS_TYPE_QUERY:
             analyseQuery(dns_packet);

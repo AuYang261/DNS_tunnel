@@ -64,7 +64,8 @@ class PacketAnalyzer {
     static std::string getSubdomain(const std::string& domain);
     static double toSecond(const timespec& ts);
 
-    bool if_dump = false;
+    bool if_dump;
+    bool display_dns;
     PyObject* py_script;
     PyObject* func_load_model;
     PyObject* func_save_model;
