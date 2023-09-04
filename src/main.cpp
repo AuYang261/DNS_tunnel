@@ -39,7 +39,13 @@ int main(int argc, char* argv[]) {
                 config.display_dns = true;
                 break;
             case 's':
-                config.threshold = std::stod(optarg);
+                try {
+                    config.threshold = std::stod(optarg);
+                }
+                catch(const std::exception& e) {
+                    std::cerr << "Warning: threshold read failed. "<< e.what() << std::endl;
+                }
+                
                 break;
             case 'h':
                 std::cout << "Usage: " << argv[0] << " [--pcap-dump / -d] [--input-file / -f source_name] [--work-dir / -w workdir] [--display-dns / -p] [--train-mode / -t]" << std::endl;

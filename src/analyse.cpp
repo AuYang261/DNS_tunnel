@@ -49,15 +49,12 @@ void PacketAnalyzer::init(const Config& config) {
         if (model_file.is_open()) {
             std::string line;
             std::getline(model_file, line);
-            try
-            {
+            try {
                 threshold = std::stod(line);
             }
-            catch(const std::exception& e)
-            {
+            catch(const std::exception& e) {
                 std::cerr << "Warning: preconfig read failed. "<< e.what() << std::endl;
             }
-            
             model_file.close();
         }
     }
