@@ -40,6 +40,19 @@ void PacketAnalyzer::init(const Config& config) {
     workdir = config.workdir;
     features_file_name = config.features_dump_file;
     display_dns = config.display_dns;
+    threshold = config.threshold;
+
+    // get config from the model
+    if (!threshold) {
+        std::fstream model_file(workdir + model_path + preconfig_name,
+                                std::ios::in);
+        if (model_file.is_open()) {
+            std::string line;
+            std::getline(model_file, line);
+            threshold = std::stod(line);
+            model_file.close();
+        }
+    }
     // open dump file
     if (if_dump) {
         dump_file = std::fstream(workdir + model_path + features_file_name,
@@ -265,7 +278,10 @@ void PacketAnalyzer::analyseResponse(DNSPacket& dns_packet) {
         // predict
         double result = predict(dns_features);
         std::cout << "id: 0x" << std::hex << dns_packet.id
-                  << " normal confidence: " << result << std::endl;
+                  << " confidence: " << result << std::endl;
+        std::cout << "predict result: " << (result < threshold ? "abnormal"
+                                                               : "normal")
+                  << std::endl;
     }
     // erase dns_features
     dns_features_map.erase(dns_feature_i);

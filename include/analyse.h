@@ -67,6 +67,7 @@ class PacketAnalyzer {
 
     bool if_dump;
     bool display_dns;
+    double threshold;
     PyObject* py_script;
     PyObject* func_load_model;
     PyObject* func_save_model;
@@ -85,6 +86,7 @@ class PacketAnalyzer {
     static inline const std::string model_name = "model";
     static inline const std::string py_script_path = "./py/";
     static inline const std::string py_script_name = "iforest";
+    static inline const std::string preconfig_name = "config";
     // static inline const std::string features_file_name = "dns_features.csv";
     static inline const int LONG_TERM_WIDTH = 20;  // in second
     static inline const int SHORT_TERM_WIDTH = 2;  // in second

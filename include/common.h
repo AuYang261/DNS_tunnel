@@ -17,6 +17,7 @@ struct Config {
 	std::string features_dump_file = "dns_features.csv";
     bool train_mode = false;   // train mode
 	bool display_dns = false;
+	double threshold = 0.0;
 
 	Config() {
 #ifdef _MACOS_

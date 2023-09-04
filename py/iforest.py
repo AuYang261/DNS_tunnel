@@ -75,6 +75,8 @@ def test(clf: IsolationForest, features_normal_all, features_abnormal_all):
         + np.sort(d_abnormal_all)[: -d_abnormal_all.shape[0] // 15].mean()
     )
     print("threshold: ", threshold)
+    with open("models/config", "w") as f:
+        f.write(str(threshold))
     accuracy_all = (
         np.sum(d_normal_all > threshold) + np.sum(d_abnormal_all < threshold)
     ) / (d_normal_all.shape[0] + d_abnormal_all.shape[0])
