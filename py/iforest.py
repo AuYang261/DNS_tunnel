@@ -30,11 +30,13 @@ def save_model(model: IsolationForest, path: str, name: str):
 # fit and predict one data with n-dimensional features
 # data: 1 dimensional list
 # return True if the data is normal
-def predict(model: IsolationForest, data: list) -> float:
+def predict(model: IsolationForest, data: tuple) -> float:
     print("predicting data: ", data)
     dataArray = np.array(data)
-    if dataArray.shape != (1,):
-        print("Warning: data.shape != (1,)")
+    if dataArray.shape != (model.n_features_in_,):
+        print(
+            f"Warning: data.shape == {dataArray.shape}, not ({model.n_features_in_},)"
+        )
     pred = model.decision_function(dataArray.reshape(1, -1))
     print("pred: ", pred)
     return pred[0]

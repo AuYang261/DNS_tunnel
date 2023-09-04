@@ -16,8 +16,24 @@ int operator-(const timespec& lhs, const timespec& rhs) {
     return lhs.tv_sec - rhs.tv_sec - (lhs.tv_nsec < rhs.tv_nsec);
 }
 
-PacketAnalyzer::PacketAnalyzer() {
+std::fstream& operator<<(std::fstream& fs, const DNSFeatures& dns_features) {
+    fs << dns_features.subdomain_len << "," << dns_features.capital_count << ","
+       << dns_features.entropy << "," << dns_features.longest_vowel_distance
+       << "," << dns_features.request_num_in_long_window << ","
+       << dns_features.response_time << ","
+       << dns_features.payload_up_down_ratio << ","
+       << dns_features.long_short_term_ratio << std::endl;
+    return fs;
 }
+
+PyObject* DNSFeatures::toPyTuple() const {
+    return Py_BuildValue("(i,i,d,i,i,d,d,d)", subdomain_len, capital_count,
+                         entropy, longest_vowel_distance,
+                         request_num_in_long_window, response_time,
+                         payload_up_down_ratio, long_short_term_ratio);
+}
+
+PacketAnalyzer::PacketAnalyzer() {}
 
 void PacketAnalyzer::init(const Config& config) {
     if_dump = config.train_mode;
@@ -32,7 +48,8 @@ void PacketAnalyzer::init(const Config& config) {
     Py_Initialize();
     PyRun_SimpleString("import sys");
     // add path
-    PyRun_SimpleString(("sys.path.append(\"" + workdir + py_script_path + "\")").c_str());
+    PyRun_SimpleString(
+        ("sys.path.append(\"" + workdir + py_script_path + "\")").c_str());
     PyErr_Print();
     // import py_script
     py_script = PyImport_ImportModule(py_script_name.c_str());
@@ -86,8 +103,8 @@ void PacketAnalyzer::loadModel() {
 
 void PacketAnalyzer::saveModel() {
     // pass model and a string to function save_model
-    PyObject* save_model_args =
-        Py_BuildValue("(Oss)", model, (workdir + model_path).c_str(), model_name.c_str());
+    PyObject* save_model_args = Py_BuildValue(
+        "(Oss)", model, (workdir + model_path).c_str(), model_name.c_str());
     // call function save_model
     PyObject_CallObject(func_save_model, save_model_args);
     PyErr_Print();
@@ -95,7 +112,12 @@ void PacketAnalyzer::saveModel() {
 
 double PacketAnalyzer::predict(const DNSFeatures& dns_features) {
     // get function predict's parameter
-    PyObject* predict_args = Py_BuildValue("(O,[i,i])", model, 2, 2);
+    PyObject* features = dns_features.toPyTuple();
+    check_null(features);
+    // pass features to function predict
+    PyObject* predict_args = Py_BuildValue("(OO)", model, features);
+    check_null(predict_args);
+
     // call function predict
     PyObject* predict_result = PyObject_CallObject(func_predict, predict_args);
     check_null(predict_result);
@@ -107,13 +129,7 @@ double PacketAnalyzer::predict(const DNSFeatures& dns_features) {
 
 void PacketAnalyzer::dump(const DNSFeatures& dns_features) {
     // save dns_features to file
-    dump_file << dns_features.subdomain_len << "," << dns_features.capital_count
-              << "," << dns_features.entropy << ","
-              << dns_features.longest_vowel_distance << ","
-              << dns_features.request_num_in_long_window << ","
-              << dns_features.response_time << ","
-              << dns_features.payload_up_down_ratio << ","
-              << dns_features.long_short_term_ratio << std::endl;
+    dump_file << dns_features;
 }
 
 void PacketAnalyzer::analysePacket(pcpp::RawPacket* packet) {
@@ -210,8 +226,7 @@ void PacketAnalyzer::analyseQuery(DNSPacket& dns_packet) {
             std::max(dns_features.longest_vowel_distance, vowel_distance);
     }
     // request_num_in_long_window
-    dns_features.request_num_in_long_window =
-        current_domain_count_long;
+    dns_features.request_num_in_long_window = current_domain_count_long;
     // LSTR
     dns_features.long_short_term_ratio =
         (double)current_domain_count_long / current_domain_count_short;

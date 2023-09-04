@@ -3,10 +3,10 @@
 
 #include <Python.h>
 
+#include <fstream>
 #include <map>
 #include <queue>
 #include <tuple>
-#include <fstream>
 
 #include "common.h"
 #include "packets.h"
@@ -27,6 +27,7 @@ struct DNSFeatures {
     int request_num_in_long_window = 0;
     // 长短窗口请求比
     double long_short_term_ratio;
+    PyObject* toPyTuple() const;
 };
 
 // id -> (DNSFeatures, timestamp)
@@ -86,7 +87,7 @@ class PacketAnalyzer {
     static inline const std::string py_script_name = "iforest";
     // static inline const std::string features_file_name = "dns_features.csv";
     static inline const int LONG_TERM_WIDTH = 20;  // in second
-    static inline const int SHORT_TERM_WIDTH = 2;   // in second
+    static inline const int SHORT_TERM_WIDTH = 2;  // in second
 
     inline static PacketAnalyzer* instance;
 };
