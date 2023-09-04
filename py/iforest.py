@@ -51,7 +51,7 @@ def train():
         np.random.randint(
             0,
             features_abnormal_all.shape[0],
-            min(features_normal.shape[0] // 100, features_abnormal_all.shape[0]),
+            min(features_normal.shape[0] // 200, features_abnormal_all.shape[0]),
         ),
         :,
     ]
