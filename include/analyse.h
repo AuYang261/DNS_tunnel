@@ -56,7 +56,7 @@ class PacketAnalyzer {
    private:
     PacketAnalyzer();
     void loadModel();
-    void saveModel();
+    // void saveModel();
     double predict(const DNSFeatures&);
     void dump(const DNSFeatures&);
     void analyseQuery(DNSPacket& dns_packet);

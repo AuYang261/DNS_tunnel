@@ -85,7 +85,6 @@ void PacketAnalyzer::finish() {
     if (if_dump) {
         dump_file.close();
     } else {
-        // saveModel();
         // can do some finishing cleaning
     }
     Py_Finalize();
@@ -101,14 +100,14 @@ void PacketAnalyzer::loadModel() {
     check_null(model);
 }
 
-void PacketAnalyzer::saveModel() {
-    // pass model and a string to function save_model
-    PyObject* save_model_args = Py_BuildValue(
-        "(Oss)", model, (workdir + model_path).c_str(), model_name.c_str());
-    // call function save_model
-    PyObject_CallObject(func_save_model, save_model_args);
-    PyErr_Print();
-}
+// void PacketAnalyzer::saveModel() {
+//     // pass model and a string to function save_model
+//     PyObject* save_model_args = Py_BuildValue(
+//         "(Oss)", model, (workdir + model_path).c_str(), model_name.c_str());
+//     // call function save_model
+//     PyObject_CallObject(func_save_model, save_model_args);
+//     PyErr_Print();
+// }
 
 double PacketAnalyzer::predict(const DNSFeatures& dns_features) {
     // get function predict's parameter
