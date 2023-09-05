@@ -52,10 +52,10 @@ void displayDnsPacket(pcpp::DnsLayer* dns_layer) {
     std::cout << "DNS packet:" << std::endl;
     std::cout << "    Transaction ID: " << dns_layer->getDnsHeader()->transactionID << std::endl;
     std::cout << "    Query/Response: " << (dns_layer->getDnsHeader()->queryOrResponse ? "Response" : "Query") << std::endl;
-    std::cout << "    Questions: " << dns_layer->getDnsHeader()->numberOfQuestions << std::endl;
-    std::cout << "    Answers: " << dns_layer->getDnsHeader()->numberOfAnswers << std::endl;
-    std::cout << "    Authority: " << dns_layer->getDnsHeader()->numberOfAuthority << std::endl;
-    std::cout << "    Additional: " << dns_layer->getDnsHeader()->numberOfAdditional << std::endl;
+    std::cout << "    Questions: " << dns_layer->getQueryCount() << std::endl;
+    std::cout << "    Answers: " << dns_layer->getAnswerCount() << std::endl;
+    std::cout << "    Authority: " << dns_layer->getAuthorityCount() << std::endl;
+    std::cout << "    Additional: " << dns_layer->getAdditionalRecordCount() << std::endl;
     std::cout << "    Domain: " << dns_layer->getFirstQuery()->getName() << std::endl;
     std::cout << "    Type: ";
     switch (dns_layer->getFirstQuery()->getDnsType()) {
